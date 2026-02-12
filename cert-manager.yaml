@@ -1,0 +1,67 @@
+{{ if .Values.certManager.enabled }}
+{{- $issuer := .Values.certManager.issuerRef | default dict }}
+---
+{{ if .Values.certManager.clientCommonName }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ template "nifi-registry.fullname" $ }}-client
+  namespace: {{ $.Release.Namespace }}
+spec:
+  duration: {{ $.Values.certManager.certDuration }}
+  commonName: {{ .Values.certManager.clientCommonName }}
+  subject:
+    organizationalUnits:
+    - NiFi Registry
+  secretName: {{ template "nifi-registry.fullname" $ }}-client
+  privateKey:
+    rotationPolicy: Always
+  usages:
+    - digital signature
+    - content commitment
+    - key encipherment
+    - data encipherment
+    - key agreement
+    - server auth
+    - client auth
+  issuerRef:
+    name: {{ $issuer.name | default "" | quote }}
+    kind: {{ $issuer.kind | default "Issuer" | quote }}
+    group: {{ $issuer.group | default "cert-manager.io" | quote }}
+---
+{{/* if .Values.certManager.clientCommonName */}}{{ end }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ template "nifi-registry.fullname" $ }}-tls
+  namespace: {{ .Release.Namespace }}
+spec:
+  commonName: {{ template "nifi-registry.fullname" $ }}.{{ .Release.Namespace }}.svc.{{ .Values.certManager.clusterDomain }}
+  subject:
+    organizationalUnits:
+    - NiFi Registry
+  secretName: {{ template "nifi-registry.fullname" $ }}-tls
+  privateKey:
+    rotationPolicy: Always
+  usages:
+    - digital signature
+    - content commitment
+    - key encipherment
+    - data encipherment
+    - key agreement
+    - server auth
+    - client auth
+  dnsNames:
+{{ toYaml $.Values.certManager.additionalDnsNames | indent 4 }}
+    - {{ template "nifi-registry.fullname" $ }}.{{ .Release.Namespace }}.svc
+    - {{ template "nifi-registry.fullname" $ }}.{{ .Release.Namespace }}.svc.{{ .Values.certManager.clusterDomain }}
+{{- $replicas := int .Values.replicaCount }}
+{{- range $i := until $replicas }}
+    - {{ template "nifi-registry.fullname" $ }}-{{ $i }}.{{ template "nifi-registry.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc
+    - {{ template "nifi-registry.fullname" $ }}-{{ $i }}.{{ template "nifi-registry.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+{{- end }}
+  issuerRef:
+    name: {{ $issuer.name | default "" | quote }}
+    kind: {{ $issuer.kind | default "Issuer" | quote }}
+    group: {{ $issuer.group | default "cert-manager.io" | quote }}
+{{/* if .Values.certManager.enabled */}}{{ end }}
