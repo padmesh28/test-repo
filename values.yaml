@@ -161,21 +161,21 @@ extraEnvs: []
 
 security:
   # Disabled by default (following the principle of least astonishment)
-  enabled: true  # enable TLS + LDAP
+  enabled: false
   needClientAuth: true
   httpsHost: "0.0.0.0"
   httpsPort: 18443
-  admin: "CN=admin,OU=Users,DC=example,DC=com"  # match LDAP identity format
+  admin: "Initial Administrator"
   # Optional: set provider/authorizer names in nifi-registry.properties
-  identityProvider: "ldap-identity-provider"
-  authorizer: "managed-authorizer"
+  identityProvider: ""
+  authorizer: ""
   # Optional: full nifi-registry.properties from secret (overrides defaults)
   propertiesFile:
-    existingSecret: "nifi-registry-properties"  # secret containing nifi-registry.properties
+    existingSecret: ""
     propertiesKey: nifi-registry.properties
   # Secret with identity-providers.xml, authorizers.xml, users.xml, authorizations.xml
   configFiles:
-    existingSecret: "nifi-registry-security-config"  # XMLs for LDAP/authz
+    existingSecret: ""
     identityProvidersKey: identity-providers.xml
     authorizersKey: authorizers.xml
     usersKey: users.xml
@@ -189,20 +189,21 @@ security:
   authConf:
 
 # cert-manager support
-# Using your configured issuerRef.
+# Setting this true will have cert-manager create a private CA just for NiFi Registry,
+# including certificates for each NiFi Registry node.
 certManager:
   # If true, use cert-manager to create and rotate intra-NiFi-Registry-cluster
   # TLS keys (note that cert-manager is a Kubernetes cluster-wide resource, so
   # is not installed automatically by this chart); c.f. https://cert-manager.io
-  enabled: true  # enable cert-manager TLS
-  # Reference to an existing Issuer or ClusterIssuer (required)
+  enabled: false
+  # Reference to an existing Issuer or ClusterIssuer (recommended)
   issuerRef:
-    name: "your-issuer-name"
+    name: ""
     kind: ClusterIssuer
     group: cert-manager.io
   # Secret containing keystore/truststore passwords
   passwordsSecret:
-    name: "nifi-registry-tls-passwords"
+    name: ""
     keystoreKey: keystorePasswd
     truststoreKey: truststorePasswd
   # TLS Common Name of a client, suitable for using as an initial administrator.
