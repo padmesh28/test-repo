@@ -1,0 +1,13 @@
+{{- if and .Values.security.configFiles .Values.security.configFiles.createConfigMap }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.security.configFiles.existingConfigMap | default (printf "%s-security-config" (include "nifi-registry.fullname" .)) }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nifi-registry.labels" . | nindent 4 }}
+data:
+  {{- with .Values.security.configFiles.data }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{- end }}

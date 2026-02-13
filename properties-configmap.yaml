@@ -1,0 +1,14 @@
+{{- if and .Values.security.propertiesFile .Values.security.propertiesFile.createConfigMap }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.security.propertiesFile.existingConfigMap | default (printf "%s-properties" (include "nifi-registry.fullname" .)) }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nifi-registry.labels" . | nindent 4 }}
+data:
+  {{- if .Values.security.propertiesFile.data }}
+  {{ .Values.security.propertiesFile.propertiesKey }}: |-
+{{ .Values.security.propertiesFile.data | indent 4 }}
+  {{- end }}
+{{- end }}
